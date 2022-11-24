@@ -1,12 +1,12 @@
--- Script that reads secrets from k/v engine in Vault
--- To indicate the number of secrets you want to read, add "-- <N>" after the URL
--- If you want to print secrets read, add "-- <N> true" after the URL
+-- Script that reads secrets from database secrets engine in Vault
+-- Example with print secrets on: wrk -t1 -c1 -d5m -H "X-Vault-Token: $VAULT_TOKEN" -s read-db-secrets.lua "${VAULT_ADDR}" -- true
+-- Example without printing secrets: wrk -t1 -c1 -d5m -H "X-Vault-Token: $VAULT_TOKEN" -s read-db-secrets.lua "${VAULT_ADDR}" -- false
 
 local str =
 [[
 
 #################################################################################
-################################  Read Secrets  #################################
+###########################  Read Random DB Secrets  ############################
 #################################################################################
 ]]
 
@@ -23,19 +23,20 @@ end
 
 function init(args)
    if args[1] == nil then
-      num_secrets = 1000
+      print_secrets = "false"
    else
-      num_secrets = tonumber(args[1])
+      print_secrets = args[1]
+   end
+   
+   if args[2] == nil then
+      num_roles = 1000
+   else
+      num_roles = tonumber(args[2])
    end
    if id == 1 then
       print(str)
    end
-   print("Number of secrets is: " .. num_secrets)
-   if args[2] == nil then
-      print_secrets = "false"
-   else
-      print_secrets = args[2]
-   end
+   print("Number of secrets is: " .. num_roles)
    requests  = 0
    reads = 0
    responses = 0
@@ -50,7 +51,8 @@ end
 function request()
    reads = reads + 1
    -- randomize path to secret
-   path = "/v1/secret/read-test/secret-" .. math.random(num_secrets)
+   randomrole = math.random(num_roles)
+   path = "/v1/database" .. randomrole .. "/creds/benchmarking" .. randomrole
    requests = requests + 1
    return wrk.format(method, path, nil, body)
 end

@@ -8,6 +8,15 @@
 -- Together, you would add "-- <identifier> <num_secrets>
 -- Note that the script might not delete final secret written if the last method invoked
 -- is a write
+
+local str =
+[[
+
+#################################################################################
+############################  Write Delete Secrets  #############################
+#################################################################################
+]]
+
 local counter = 1
 local threads = {}
 
@@ -27,6 +36,9 @@ function init(args)
       num_secrets = 100
    else
       num_secrets = tonumber(args[2])
+   end
+   if id == 1 then
+      print(str)
    end
    print("Number of secrets is: " .. num_secrets)
    requests  = 0

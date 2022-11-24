@@ -1,13 +1,5 @@
--- Script that authenticates a user against Vault's userpass system 
--- and then revokes the lease many times
-
-local str =
-[[
-
-#################################################################################
-##############################  Auth Revoke Users  ##############################
-#################################################################################
-]]
+-- Script that authenticates a user against Vault's userpass system.
+-- This script should be used with batch tokens only. Any Leases (if issued) are not revoked.
 
 local counter = 1
 local threads = {}
@@ -23,31 +15,23 @@ function init(args)
    authentications = 0
    revocations = 0
    responses = 0
-   if id == 1 then
-      print(str)
-   end
+   users = 1000
    local msg = "thread %d created"
    print(msg:format(id))
 end
 
 function request()
    requests = requests + 1
-   if requests > 3 and requests % 2 == 0 then
-      -- Authenticate
-      authentications = authentications + 1
-      method = "POST"
-      path = "/v1/auth/userpass/login/loadtester"
-      body = '{"password" : "benchmark" }'
-      -- print("Authenticating")
-   else
-      -- Revoke lease
-      revocations = revocations + 1
-      method = "PUT"
-      path = "/v1/sys/leases/revoke-prefix/auth/userpass/login/loadtester"
-      body = ''
-      -- print("Revoking")
-   end
-   return wrk.format(method, path, nil, body)
+
+   -- Authenticate
+   authentications = authentications + 1
+   randomuser = math.random(users)
+   method = "POST"
+   path = "/v1/auth/userpass/login/loadtester" .. randomuser
+   body = '{"password" : "benchmark" }'
+   -- print("Authenticating")
+
+return wrk.format(method, path, nil, body)
 end
 
 function delay()

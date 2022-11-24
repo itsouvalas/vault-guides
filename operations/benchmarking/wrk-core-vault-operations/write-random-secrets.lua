@@ -1,6 +1,18 @@
 -- Script that writes secrets to k/v engine in Vault
 -- You can specify the number of distinct secrets to write by adding "-- <N>" after the URL
 
+
+local str =
+[[
+
+#################################################################################
+############################  Write Random Secrets  #############################
+#################################################################################
+]]
+
+
+json = require "json"
+
 local counter = 1
 local threads = {}
 
@@ -15,6 +27,9 @@ function init(args)
       num_secrets = 1000
    else
       num_secrets = tonumber(args[1])
+   end
+   if id == 1 then
+      print(str)
    end
    print("Number of secrets is: " .. num_secrets)
    requests  = 0
@@ -40,7 +55,9 @@ function request()
 end
 
 function response(status, headers, body)
+   if status == 200  or status == 204 then
    responses = responses + 1
+   end
 end
 
 function done(summary, latency, requests)

@@ -16,9 +16,22 @@ function init(args)
    else
       path_prefix = args[1]
    end
+   if args[2] == nil then
+      secret_name = "/secret-0"
+   else
+      secret_name = args[2]
+   end
+   if args[3] == nil then
+      secret_number = 10000000
+   else
+      secret_number = tonumber(args[3])
+   end
+   
    requests  = 0
    deletes = 0
    responses = 0
+   notfound = 0
+   failed = 0
    method = "DELETE"
    path = "/v1/" .. path_prefix .. "/secret-0"
    body = ''
@@ -32,7 +45,7 @@ function request()
    if requests > 0 then
       deletes = deletes + 1
       -- Set the path to the desired path with secrets you want to delete
-      path = "/v1/" .. path_prefix .. "/secret-" .. deletes
+      path = "/v1/" .. path_prefix .. "/" .. secret_name .. deletes
       body = ''
    end
    requests = requests + 1
@@ -40,7 +53,13 @@ function request()
 end
 
 function response(status, headers, body)
+   if status == 200  or status == 204 then
    responses = responses + 1
+   elseif status == 404 then
+   notfound = notfound + 1
+   elseif status == 500 then
+   failed = failed + 1
+   end
 end
 
 function done(summary, latency, requests)
@@ -49,7 +68,9 @@ function done(summary, latency, requests)
       local requests  = thread:get("requests")
       local deletes   = thread:get("deletes")
       local responses = thread:get("responses")
-      local msg = "thread %d made %d requests including % deletes and got %d responses"
-      print(msg:format(id, requests, deletes, responses))
+      local notfound  = thread:get("notfound")
+      local failed    = thread:get("failed")
+      local msg = "thread %d made %d requests including % deletes and got %d responses of which %d not found and %d failed"
+      print(msg:format(id, requests, deletes, responses, notfound, failed))
    end
 end
