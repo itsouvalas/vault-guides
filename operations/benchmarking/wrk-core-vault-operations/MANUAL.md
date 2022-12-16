@@ -1158,3 +1158,451 @@ thread 2 made 7501 requests including 7501 reads and got 7497 responses
 thread 3 made 7476 requests including 7476 reads and got 7472 responses
 thread 4 made 7446 requests including 7446 reads and got 7443 responses
 ```
+
+# Comparing between configurations
+
+## Noisy Neighbor
+
+One way or another we have all either lived or heard about a noisy neighbor that kept us or the storyteller up at night. The same concept is [transferable](https://docs.aws.amazon.com/wellarchitected/latest/saas-lens/noisy-neighbor.html) to our instances running on a cloud provider. In our testing process we stopped and started the entirety of our cluster which as a [result](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Stop_Start.html) *the instances were migrated to new underlying host computers*. Without any other changes, and although we had left enough time for the instances to build a cpu burst balance we could clearly see a degradation on the service:
+
+```bash
+Synthetic test started at Fri Dec 16 07:02:27 UTC 2022 with the following options:
+
+Theads: 4 
+Connections: 16
+Duration: 1m
+Number of Secrets: 10000
+
+#################################################################################
+############################  Write Random Secrets  #############################
+#################################################################################
+
+Number of secrets is: 10000
+thread 1 created
+Number of secrets is: 10000
+thread 2 created
+Number of secrets is: 10000
+thread 3 created
+Number of secrets is: 10000
+thread 4 created
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    96.03ms   38.06ms 378.37ms   78.56%
+    Req/Sec    43.03     14.40    90.00     70.66%
+  10076 requests in 1.00m, 1.16MB read
+Requests/sec:    167.85
+Transfer/sec:     19.83KB
+thread 1 made 2545 requests including 2545 writes and got 2540 responses
+thread 2 made 2510 requests including 2510 writes and got 2506 responses
+thread 3 made 2531 requests including 2531 writes and got 2527 responses
+thread 4 made 2507 requests including 2507 writes and got 2503 responses
+
+#################################################################################
+############################  Write Delete Secrets  #############################
+#################################################################################
+
+Number of secrets is: 10000
+thread 1 created
+Number of secrets is: 10000
+thread 2 created
+Number of secrets is: 10000
+thread 3 created
+Number of secrets is: 10000
+thread 4 created
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   101.83ms   41.23ms 420.65ms   78.85%
+    Req/Sec    40.53     13.48    90.00     75.04%
+  9520 requests in 1.00m, 1.10MB read
+Requests/sec:    158.55
+Transfer/sec:     18.73KB
+thread 1 made 2416 requests including 1207 writes and 1209 deletes and got 2411 responses
+thread 2 made 2385 requests including 1191 writes and 1194 deletes and got 2381 responses
+thread 3 made 2370 requests including 1184 writes and 1186 deletes and got 2366 responses
+thread 4 made 2366 requests including 1182 writes and 1184 deletes and got 2362 responses
+
+#################################################################################
+################################  Read Secrets  #################################
+#################################################################################
+
+Number of secrets is: 10000
+thread 1 created with print_secrets set to false
+Number of secrets is: 10000
+thread 2 created with print_secrets set to false
+Number of secrets is: 10000
+thread 3 created with print_secrets set to false
+Number of secrets is: 10000
+thread 4 created with print_secrets set to false
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    70.29ms   35.67ms 335.93ms   75.73%
+    Req/Sec    59.59     20.58   151.00     80.88%
+  14030 requests in 1.00m, 5.81MB read
+Requests/sec:    233.47
+Transfer/sec:     98.93KB
+thread 1 made 3528 requests including 3528 reads and got 3523 responses
+thread 2 made 3525 requests including 3525 reads and got 3521 responses
+thread 3 made 3492 requests including 3492 reads and got 3488 responses
+thread 4 made 3502 requests including 3502 reads and got 3498 responses
+
+#################################################################################
+##############################  Auth Revoke Users  ##############################
+#################################################################################
+
+thread 1 created
+thread 2 created
+thread 3 created
+thread 4 created
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    82.40ms   39.77ms 362.94ms   75.95%
+    Req/Sec    50.69     17.20   110.00     66.18%
+  11919 requests in 1.00m, 1.74MB read
+  Non-2xx or 3xx responses: 5956
+Requests/sec:    198.33
+Transfer/sec:     29.73KB
+thread 1 made 1483 authentications and 1486 revocations and got 1483 responses
+thread 2 made 1490 authentications and 1493 revocations and got 1491 responses
+thread 3 made 1489 authentications and 1492 revocations and got 1489 responses
+thread 4 made 1500 authentications and 1503 revocations and got 1500 responses
+
+#################################################################################
+###########################  Read Random DB Secrets  ############################
+#################################################################################
+
+Number of secrets is: 1000
+thread 1 created with print_secrets set to false
+Number of secrets is: 1000
+thread 2 created with print_secrets set to false
+Number of secrets is: 1000
+thread 3 created with print_secrets set to false
+Number of secrets is: 1000
+thread 4 created with print_secrets set to false
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   160.86ms   58.05ms 583.32ms   76.96%
+    Req/Sec    26.21     11.58    60.00     53.42%
+  5990 requests in 1.00m, 2.56MB read
+Requests/sec:     99.68
+Transfer/sec:     43.69KB
+thread 1 made 1508 requests including 1508 reads and got 1503 responses
+thread 2 made 1505 requests including 1505 reads and got 1501 responses
+thread 3 made 1499 requests including 1499 reads and got 1495 responses
+thread 4 made 1495 requests including 1495 reads and got 1491 responses
+```
+
+* Write Random Secrets  10076 vs 12203
+* Write Delete Secrets   9520 vs 10839
+* Read Secrets          14030 vs 29270
+* Auth Revoke Users     11919 vs 17209
+
+There are several other reasons than could have an effect on the numbers such us expiring credentials, other operations happening on the backend, network congestion etc, yet we will classify this under the noisy neighbor umbrella.
+
+## Dedicate IOPS consul 
+
+We know that a lot of our tests rely on disk activity and its performance. In our example below we have change from GP2 to Dedicated IOPS of 2.5k:
+
+```bash
+Synthetic test started at Fri Dec 16 08:47:06 UTC 2022 with the following options:
+
+Theads: 4 
+Connections: 16
+Duration: 1m
+Number of Secrets: 10000
+
+#################################################################################
+###########################  Read Random DB Secrets  ############################
+#################################################################################
+
+Number of secrets is: 1000
+thread 1 created with print_secrets set to false
+Number of secrets is: 1000
+thread 2 created with print_secrets set to false
+Number of secrets is: 1000
+thread 3 created with print_secrets set to false
+Number of secrets is: 1000
+thread 4 created with print_secrets set to false
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   156.92ms   60.51ms 521.79ms   76.86%
+    Req/Sec    27.08     11.98    70.00     46.47%
+  6165 requests in 1.00m, 2.64MB read
+Requests/sec:    102.60
+Transfer/sec:     44.97KB
+thread 1 made 1548 requests including 1548 reads and got 1543 responses
+thread 2 made 1537 requests including 1537 reads and got 1533 responses
+thread 3 made 1545 requests including 1545 reads and got 1541 responses
+thread 4 made 1552 requests including 1552 reads and got 1548 responses
+
+#################################################################################
+##############################  Auth Revoke Users  ##############################
+#################################################################################
+
+thread 1 created
+thread 2 created
+thread 3 created
+thread 4 created
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    80.92ms   43.32ms 418.20ms   78.16%
+    Req/Sec    52.50     18.58   120.00     74.32%
+  12284 requests in 1.00m, 1.80MB read
+  Non-2xx or 3xx responses: 6139
+Requests/sec:    204.41
+Transfer/sec:     30.64KB
+thread 1 made 1537 authentications and 1539 revocations and got 1536 responses
+thread 2 made 1531 authentications and 1533 revocations and got 1531 responses
+thread 3 made 1541 authentications and 1543 revocations and got 1541 responses
+thread 4 made 1537 authentications and 1540 revocations and got 1537 responses
+
+#################################################################################
+################################  Read Secrets  #################################
+#################################################################################
+
+Number of secrets is: 10000
+thread 1 created with print_secrets set to false
+Number of secrets is: 10000
+thread 2 created with print_secrets set to false
+Number of secrets is: 10000
+thread 3 created with print_secrets set to false
+Number of secrets is: 10000
+thread 4 created with print_secrets set to false
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    69.74ms   38.90ms 365.22ms   78.74%
+    Req/Sec    61.03     21.86   140.00     76.50%
+  14302 requests in 1.00m, 5.92MB read
+Requests/sec:    237.99
+Transfer/sec:    100.84KB
+thread 1 made 3593 requests including 3593 reads and got 3588 responses
+thread 2 made 3568 requests including 3568 reads and got 3564 responses
+thread 3 made 3582 requests including 3582 reads and got 3578 responses
+thread 4 made 3576 requests including 3576 reads and got 3572 responses
+
+#################################################################################
+############################  Write Delete Secrets  #############################
+#################################################################################
+
+Number of secrets is: 10000
+thread 1 created
+Number of secrets is: 10000
+thread 2 created
+Number of secrets is: 10000
+thread 3 created
+Number of secrets is: 10000
+thread 4 created
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   101.64ms   44.93ms 438.56ms   79.93%
+    Req/Sec    41.19     14.62    80.00     69.24%
+  9587 requests in 1.00m, 1.11MB read
+Requests/sec:    159.54
+Transfer/sec:     18.85KB
+thread 1 made 2436 requests including 1217 writes and 1219 deletes and got 2431 responses
+thread 2 made 2375 requests including 1186 writes and 1189 deletes and got 2371 responses
+thread 3 made 2380 requests including 1189 writes and 1191 deletes and got 2376 responses
+thread 4 made 2413 requests including 1205 writes and 1208 deletes and got 2409 responses
+
+#################################################################################
+############################  Write Random Secrets  #############################
+#################################################################################
+
+Number of secrets is: 10000
+thread 1 created
+Number of secrets is: 10000
+thread 2 created
+Number of secrets is: 10000
+thread 3 created
+Number of secrets is: 10000
+thread 4 created
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    94.07ms   41.35ms 421.74ms   79.24%
+    Req/Sec    44.53     15.63   161.00     79.10%
+  10384 requests in 1.00m, 1.20MB read
+Requests/sec:    172.79
+Transfer/sec:     20.42KB
+thread 1 made 2611 requests including 2611 writes and got 2606 responses
+thread 2 made 2583 requests including 2583 writes and got 2579 responses
+thread 3 made 2613 requests including 2613 writes and got 2609 responses
+thread 4 made 2594 requests including 2594 writes and got 2590 responses
+```
+
+* Write Random Secrets    10384 vs 10076
+* Write Delete Secrets     9587 vs  9520
+* Read Secrets            14302 vs 14030
+* Auth Revoke Users       12284 vs 11919
+* Read Random DB Secrets   6165 vs  5990
+
+For the intensity and load of our tests, using volume with dedicated IOPS had no effect whatsoever. 
+
+## Using magnetic storage consul
+
+We already saw that SSD (gp2) and Dedicated IOPS drive had insignificant differences ofr our tests. What happens if we go for magnetic type volumes for the database backend:
+
+```bash
+Synthetic test started at Fri Dec 16 13:52:49 UTC 2022 with the following options:
+
+Theads: 4 
+Connections: 16
+Duration: 1m
+Number of Secrets: 10000
+
+#################################################################################
+############################  Write Delete Secrets  #############################
+#################################################################################
+
+Number of secrets is: 10000
+thread 1 created
+Number of secrets is: 10000
+thread 2 created
+Number of secrets is: 10000
+thread 3 created
+Number of secrets is: 10000
+thread 4 created
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   326.04ms  354.10ms   1.94s    83.47%
+    Req/Sec    30.38     18.28    80.00     51.59%
+  4259 requests in 1.00m, 503.26KB read
+  Socket errors: connect 0, read 0, write 0, timeout 2
+Requests/sec:     70.95
+Transfer/sec:      8.38KB
+thread 1 made 1089 requests including 543 writes and 546 deletes and got 1084 responses
+thread 2 made 1075 requests including 536 writes and 539 deletes and got 1071 responses
+thread 3 made 1052 requests including 525 writes and 527 deletes and got 1048 responses
+thread 4 made 1060 requests including 529 writes and 531 deletes and got 1056 responses
+
+#################################################################################
+##############################  Auth Revoke Users  ##############################
+#################################################################################
+
+thread 1 created
+thread 2 created
+thread 3 created
+thread 4 created
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    58.66ms  112.49ms   1.07s    93.99%
+    Req/Sec   126.62     75.14   300.00     57.30%
+  28113 requests in 1.00m, 4.12MB read
+  Non-2xx or 3xx responses: 14052
+Requests/sec:    467.80
+Transfer/sec:     70.12KB
+thread 1 made 3521 authentications and 3523 revocations and got 3520 responses
+thread 2 made 3506 authentications and 3509 revocations and got 3507 responses
+thread 3 made 3515 authentications and 3517 revocations and got 3515 responses
+thread 4 made 3518 authentications and 3521 revocations and got 3519 responses
+
+#################################################################################
+############################  Write Random Secrets  #############################
+#################################################################################
+
+Number of secrets is: 10000
+thread 1 created
+Number of secrets is: 10000
+thread 2 created
+Number of secrets is: 10000
+thread 3 created
+Number of secrets is: 10000
+thread 4 created
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   293.36ms  326.12ms   1.81s    83.20%
+    Req/Sec    34.25     20.10   100.00     60.19%
+  4888 requests in 1.00m, 577.59KB read
+  Socket errors: connect 0, read 0, write 0, timeout 1
+Requests/sec:     81.34
+Transfer/sec:      9.61KB
+thread 1 made 1250 requests including 1250 writes and got 1245 responses
+thread 2 made 1234 requests including 1234 writes and got 1230 responses
+thread 3 made 1212 requests including 1212 writes and got 1208 responses
+thread 4 made 1209 requests including 1209 writes and got 1205 responses
+
+#################################################################################
+###########################  Read Random DB Secrets  ############################
+#################################################################################
+
+Number of secrets is: 1000
+thread 1 created with print_secrets set to false
+Number of secrets is: 1000
+thread 2 created with print_secrets set to false
+Number of secrets is: 1000
+thread 3 created with print_secrets set to false
+Number of secrets is: 1000
+thread 4 created with print_secrets set to false
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   432.27ms  391.66ms   1.99s    83.42%
+    Req/Sec    19.57     12.62    50.00     67.30%
+  2672 requests in 1.00m, 1.14MB read
+  Socket errors: connect 0, read 0, write 0, timeout 3
+Requests/sec:     44.46
+Transfer/sec:     19.48KB
+thread 1 made 674 requests including 674 reads and got 669 responses
+thread 2 made 680 requests including 680 reads and got 676 responses
+thread 3 made 673 requests including 673 reads and got 669 responses
+thread 4 made 662 requests including 662 reads and got 658 responses
+
+#################################################################################
+################################  Read Secrets  #################################
+#################################################################################
+
+Number of secrets is: 10000
+thread 1 created with print_secrets set to false
+Number of secrets is: 10000
+thread 2 created with print_secrets set to false
+Number of secrets is: 10000
+thread 3 created with print_secrets set to false
+Number of secrets is: 10000
+thread 4 created with print_secrets set to false
+Running 1m test @ https://vault.service.consul:8200
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   158.08ms  241.57ms   1.73s    86.36%
+    Req/Sec    76.39     42.89   484.00     69.99%
+  14285 requests in 1.00m, 5.91MB read
+Requests/sec:    237.71
+Transfer/sec:    100.72KB
+thread 1 made 3580 requests including 3580 reads and got 3575 responses
+thread 2 made 3482 requests including 3482 reads and got 3478 responses
+thread 3 made 3745 requests including 3745 reads and got 3742 responses
+thread 4 made 3494 requests including 3494 reads and got 3490 responses
+```
+
+We can clearly see that the performance has halved for the write operations, even for our small duration and number of secrets tested:
+
+* Write Random Secrets    4888 vs 10076
+* Write Delete Secrets    4259 vs 9520
+* Read Secrets            14285 vs 14030
+* Auth Revoke Users       28113 vs 11919
+* Read Random DB Secrets  2672 vs 5990
+
+As far as the increase in the Auth Revoke results we can assume that whichever background process or disc warmup has finished, and allowed the engine to go trough more requests.
+
+** Configuration conclusion
+
+Although the strongest and the fastest infrastructure will always yeld better results, this is directly connected to the engine used, the duration and the number of secrets used. Depending on your implementation you can use the above tests to underline changes for a number of changes:
+
+* Instance Sizes
+* Disk Types
+* Availability Zones
+* Regions and expected delays between VPC peering
+* Optimization settings for Vault/Consul
+* Version Changes
+
+Happy testing!
