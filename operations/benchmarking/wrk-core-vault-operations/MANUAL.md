@@ -152,7 +152,7 @@ The machine where the tests should be run from should have network access to the
 
 * The repository with the testing scripts:
 
-`git clone https://github.com/hashicorp/vault-guides.git`
+`git clone https://github.com/itsouvalas/Vault-Performance-Testing.git`
 
 `cd vault-guides/operations/benchmarking/wrk-core-vault-operations`
 
